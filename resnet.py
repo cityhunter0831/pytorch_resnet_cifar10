@@ -54,8 +54,10 @@ class LambdaLayer(nn.Module):
 class BasicBlock(nn.Module):
     expansion = 1
 
-    def __init__(self, in_planes, planes, stride=1, option='A'):
+    def __init__(self, in_planes, planes, stride=1, option='A', residual=True):
         super(BasicBlock, self).__init__()
+        # [study] residual=False -> plain block: same layers/params, only the '+ x' is removed
+        self.residual = residual
         self.conv1 = nn.Conv2d(in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
         self.conv2 = nn.Conv2d(planes, planes, kernel_size=3, stride=1, padding=1, bias=False)
@@ -78,15 +80,17 @@ class BasicBlock(nn.Module):
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
         out = self.bn2(self.conv2(out))
-        out += self.shortcut(x)
+        if self.residual:
+            out += self.shortcut(x)
         out = F.relu(out)
         return out
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=10):
+    def __init__(self, block, num_blocks, num_classes=10, residual=True):
         super(ResNet, self).__init__()
         self.in_planes = 16
+        self.residual = residual
 
         self.conv1 = nn.Conv2d(3, 16, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn1 = nn.BatchNorm2d(16)
@@ -101,7 +105,7 @@ class ResNet(nn.Module):
         strides = [stride] + [1]*(num_blocks-1)
         layers = []
         for stride in strides:
-            layers.append(block(self.in_planes, planes, stride))
+            layers.append(block(self.in_planes, planes, stride, residual=self.residual))
             self.in_planes = planes * block.expansion
 
         return nn.Sequential(*layers)
@@ -117,28 +121,28 @@ class ResNet(nn.Module):
         return out
 
 
-def resnet20():
-    return ResNet(BasicBlock, [3, 3, 3])
+def resnet20(residual=True):
+    return ResNet(BasicBlock, [3, 3, 3], residual=residual)
 
 
-def resnet32():
-    return ResNet(BasicBlock, [5, 5, 5])
+def resnet32(residual=True):
+    return ResNet(BasicBlock, [5, 5, 5], residual=residual)
 
 
-def resnet44():
-    return ResNet(BasicBlock, [7, 7, 7])
+def resnet44(residual=True):
+    return ResNet(BasicBlock, [7, 7, 7], residual=residual)
 
 
-def resnet56():
-    return ResNet(BasicBlock, [9, 9, 9])
+def resnet56(residual=True):
+    return ResNet(BasicBlock, [9, 9, 9], residual=residual)
 
 
-def resnet110():
-    return ResNet(BasicBlock, [18, 18, 18])
+def resnet110(residual=True):
+    return ResNet(BasicBlock, [18, 18, 18], residual=residual)
 
 
-def resnet1202():
-    return ResNet(BasicBlock, [200, 200, 200])
+def resnet1202(residual=True):
+    return ResNet(BasicBlock, [200, 200, 200], residual=residual)
 
 
 def test(net):
