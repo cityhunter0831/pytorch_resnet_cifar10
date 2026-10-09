@@ -47,6 +47,13 @@ def fig6(runs, out, ymax=20):
     fig, axes = plt.subplots(1, 2, figsize=(11, 4.2), sharey=True)
     for ax, kind, title in [(axes[0], 'plain', 'Plain'), (axes[1], 'residual', 'ResNet')]:
         sel = sorted([r for r in runs if r['kind'] == kind], key=lambda r: r['depth'])
+        # end-of-line label positions, pushed apart so they never overlap
+        ends = sorted(((min(r['log'][r['log'].epoch > 0]['test_err'].iloc[-1], ymax - 0.5), r['depth'])
+                       for r in sel if (r['log'].epoch > 0).any()))
+        label_y, last = {}, -1e9
+        for y, dpt in ends:
+            y = max(y, last + 0.9)
+            label_y[dpt], last = y, y
         for r in sel:
             lg = r['log'][r['log'].epoch > 0]
             x = lg['iter'] / 1e4
@@ -54,7 +61,7 @@ def fig6(runs, out, ymax=20):
             ax.plot(x, lg['train_err'], color=c, lw=1.2, ls='--', alpha=0.9)
             ax.plot(x, lg['test_err'], color=c, lw=2.2)
             # direct label at the right end of the test curve
-            ax.annotate(f"{title.lower()}-{r['depth']}", (x.iloc[-1], min(lg['test_err'].iloc[-1], ymax - 0.5)),
+            ax.annotate(f"{title.lower()}-{r['depth']}", (x.iloc[-1], label_y[r['depth']]),
                         xytext=(6, 0), textcoords='offset points', va='center', fontsize=10, color=INK)
         for m in sel[:1]:
             for it in m['cfg']['milestones_iter']:
