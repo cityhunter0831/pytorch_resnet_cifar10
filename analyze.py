@@ -33,8 +33,9 @@ def load_runs(root):
         if not os.path.exists(os.path.join(d, 'log.csv')):
             continue
         cfg = json.load(open(os.path.join(d, 'config.json')))
-        log = pd.read_csv(os.path.join(d, 'log.csv'))
-        grads = pd.read_csv(os.path.join(d, 'grads.csv'))
+        # after a disconnect an epoch can be logged twice (logged, then killed before its checkpoint) -> keep last
+        log = pd.read_csv(os.path.join(d, 'log.csv')).drop_duplicates('epoch', keep='last').sort_values('epoch')
+        grads = pd.read_csv(os.path.join(d, 'grads.csv')).drop_duplicates(['epoch', 'layer_idx'], keep='last')
         depth = int(cfg['arch'].replace('resnet', ''))
         runs.append(dict(name=cfg['run'], depth=depth, kind='plain' if cfg['plain'] else 'residual',
                          seed=cfg['seed'], cfg=cfg, log=log, grads=grads,
