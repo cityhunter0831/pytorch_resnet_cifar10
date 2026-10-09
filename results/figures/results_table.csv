@@ -1,0 +1,5 @@
+model,layers,params,iters,finished,final train err (%),final test err (%),best test err (%),akamaster README (%),paper Table 6 (%)
+plain-20,20,0.27M,64000,True,1.04,9.1,9.01,수치 없음,수치 없음(그래프만)
+plain-56,56,0.85M,64000,True,8.64,14.17,14.01,수치 없음,수치 없음(그래프만)
+ResNet-20,20,0.27M,64000,True,0.59,8.01,7.91,8.27,8.75
+ResNet-56,56,0.85M,64000,True,0.1,7.43,7.41,6.61,6.97
