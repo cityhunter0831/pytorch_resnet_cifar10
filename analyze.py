@@ -108,9 +108,9 @@ def grad_by_layer(runs, out, depth=56):
         print(f'grad_by_layer: need plain-{depth} and resnet-{depth}, skip')
         return
     last = min(int(sel['plain']['grads'].epoch.max()), int(sel['residual']['grads'].epoch.max()))
-    epochs = [e for e in [0, 1, last] if e <= last]
-    epochs = sorted(set(epochs))
-    titles = {0: 'at initialization', 1: 'epoch 1'}
+    mid = min(40, last)  # middle of the lr=0.1 phase
+    epochs = sorted(set(e for e in [0, mid, last] if e <= last))
+    titles = {0: 'at initialization', mid: f'epoch {mid} (lr 0.1)'}
     fig, axes = plt.subplots(1, len(epochs), figsize=(4.2 * len(epochs), 3.8), sharey=True)
     axes = axes if len(epochs) > 1 else [axes]
     for ax, e in zip(axes, epochs):
