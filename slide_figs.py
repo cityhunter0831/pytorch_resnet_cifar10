@@ -74,3 +74,47 @@ fig.tight_layout(w_pad=3)
 fig.savefig(os.path.join(a.out, 'slide11_grad.png'), dpi=220)
 plt.close(fig)
 print('saved', a.out)
+
+# ---- slide 7: ResNet-20 (CIFAR) whole-network strip, paper Fig.3 style, box ~5.5 x 2.95 in ---------
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+W, Hh = 5.5, 2.95
+fig = plt.figure(figsize=(W, Hh)); ax = fig.add_axes([0, 0, 1, 1]); ax.set_xlim(0, W); ax.set_ylim(0, Hh); ax.axis('off')
+STAGE = [('#e8eef9', '#2a78d6', '16ch · 32×32'), ('#e6f4ee', '#1b8a5a', '32ch · 16×16'), ('#fbeae3', '#c4532a', '64ch · 8×8')]
+bw, gap, y0, bh = 0.15, 0.058, 1.28, 0.62
+x = 0.12
+def box(x, face, edge, label=None, w=bw):
+    ax.add_patch(FancyBboxPatch((x, y0), w, bh, boxstyle='round,pad=0,rounding_size=0.03', fc=face, ec=edge, lw=1))
+    if label:
+        ax.text(x + w / 2, y0 + bh / 2, label, rotation=90, ha='center', va='center', fontsize=10.5, color=INK)
+ax.text(x, y0 + bh / 2, '입력', ha='left', va='center', fontsize=11, color=INK2); x += 0.5
+ax.annotate('', (x - 0.03, y0 + bh / 2), (x - 0.15, y0 + bh / 2), arrowprops=dict(arrowstyle='->', color=INK2, lw=1))
+box(x, '#f3f1ee', INK2, '3×3', w=0.24); x += 0.24 + gap
+starts = []
+for si, (face, edge, lab) in enumerate(STAGE):
+    sx = x
+    for b in range(3):                       # n = 3 blocks -> 2 convs each
+        bx = x
+        for c in range(2):
+            box(x, face, edge); x += bw + gap
+        # shortcut arc over the block
+        ex = x - gap
+        dashed = (si > 0 and b == 0)
+        ax.add_patch(FancyArrowPatch((bx - gap / 2, y0 + bh), (ex + gap / 2, y0 + bh), connectionstyle='arc3,rad=-0.55',
+                                     arrowstyle='-|>', mutation_scale=7, lw=1.3, color=INK,
+                                     linestyle=(0, (2, 1.5)) if dashed else '-'))
+    starts.append((sx, x - gap, edge, lab))
+    x += 0.04
+box(x, '#f3f1ee', INK2, 'GAP', w=0.24); x += 0.24 + gap
+box(x, '#f3f1ee', INK2, 'FC 10', w=0.24); x += 0.24
+for sx, ex, edge, lab in starts:            # stage brackets + labels
+    yb = y0 - 0.1
+    ax.plot([sx, sx, ex, ex], [yb + 0.05, yb, yb, yb + 0.05], color=edge, lw=1.2)
+    ax.text((sx + ex) / 2, yb - 0.08, lab, ha='center', va='top', fontsize=11, color=edge, fontweight='bold')
+ax.text(0.12, 0.42, '첫 3×3 층 + 블록 9개(conv 2층씩) 18층 + FC = 20층', fontsize=11.5, color=INK, va='center')
+ax.text(0.12, 0.14, 'n = 9로 늘리면 56층 (0.85M) · plain 망은 화살표만 제거', fontsize=11.5, color=INK2, va='center')
+ax.plot([3.3, 3.62], [2.62, 2.62], color=INK, lw=1.3); ax.text(3.67, 2.62, '항등 shortcut', fontsize=11, va='center', color=INK)
+ax.plot([3.3, 3.62], [2.36, 2.36], color=INK, lw=1.3, linestyle=(0, (2, 1.5))); ax.text(3.67, 2.36, '크기 변경 (zero-pad)', fontsize=11, va='center', color=INK)
+ax.text(0.12, 2.62, 'ResNet-20 (n = 3, 0.27M)', fontsize=14, fontweight='bold', va='center', color=INK)
+fig.savefig(os.path.join(a.out, 'slide7_resnet20.png'), dpi=250)
+plt.close(fig)
+print('saved slide7')
