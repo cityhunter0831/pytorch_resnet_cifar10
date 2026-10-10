@@ -118,3 +118,18 @@ ax.text(0.12, 2.62, 'ResNet-20 (n = 3, 0.27M)', fontsize=14, fontweight='bold', 
 fig.savefig(os.path.join(a.out, 'slide7_resnet20.png'), dpi=250)
 plt.close(fig)
 print('saved slide7')
+
+# ---- appendix: per-layer gradient norm at initialization, box ~11.7 x 3.3 in ----------------------
+sel = {r['kind']: r for r in runs if r['depth'] == 56}
+fig, ax = plt.subplots(figsize=(11.6, 3.3))
+for kind, name in [('plain', 'plain-56'), ('residual', 'ResNet-56')]:
+    g = sel[kind]['grads']; g = g[g.epoch == 0].sort_values('layer_idx')
+    ax.plot(g['layer_idx'] + 1, g['grad_norm'], color=C_KIND[kind], lw=2.4, label=name)
+ax.set_yscale('log')
+ax.set_title('초기화 직후 (학습 전, 미니배치 10개 평균)', loc='left', fontsize=14, fontweight='bold', color=INK)
+ax.set_xlabel('conv 층 위치 (입력 → 출력)', fontsize=13); ax.set_ylabel('기울기 크기 (로그)', fontsize=13)
+ax.grid(axis='y', color=GRID, lw=0.8); ax.legend(frameon=False, fontsize=13, loc='upper right')
+fig.tight_layout()
+fig.savefig(os.path.join(a.out, 'appendix_grad_init.png'), dpi=220)
+plt.close(fig)
+print('saved appendix')
